@@ -65,14 +65,17 @@ public class Game {
             } else if (row0.equals(row1)) {
 
                 int size = Math.abs(columnList.indexOf(column0) - columnList.indexOf(column1)) + 1;
+                int c0 = columnList.indexOf(column0);
+                int c1 = columnList.indexOf(column1);
+                int c = Math.min(c0, c1);
 
                 if (size != ship.getCells()) {
                     System.out.printf("Error! Wrong length of the %s! Try again:\n", ship.getName());
-                } else {
 
-                    int c0 = columnList.indexOf(column0);
-                    int c1 = columnList.indexOf(column1);
-                    int c = Math.min(c0, c1);
+                } else if (horizontalCollision(size, rowList.indexOf(row0), c - 1)) {
+                    System.out.println("Error! You placed it too close to another one. Try again:");
+
+                } else {
                     placeShipHorizontally(size, rowList.indexOf(row0) , c - 1);
                     shipPlaced = true;
                 }
@@ -80,14 +83,17 @@ public class Game {
             } else if (column0.equals(column1)) {
 
                 int size = Math.abs(rowList.indexOf(row0) - rowList.indexOf(row1)) + 1;
+                int r0 = rowList.indexOf(row0);
+                int r1 = rowList.indexOf(row1);
+                int r = Math.min(r0, r1);
 
                 if (size != ship.getCells()) {
                     System.out.printf("Error! Wrong length of the %s! Try again:\n", ship.getName());
-                } else {
 
-                    int r0 = rowList.indexOf(row0);
-                    int r1 = rowList.indexOf(row1);
-                    int r = Math.min(r0, r1);
+                } else if (verticalCollision(size, r, columnList.indexOf(column0) - 1)) {
+                    System.out.println("Error! You placed it too close to another one. Try again:");
+
+                } else {
                     placeShipVertically(size, r, columnList.indexOf(column0) - 1);
                     shipPlaced = true;
                 }
@@ -101,9 +107,85 @@ public class Game {
 
     }
 
+    // Testa se existirá colisão caso o navio seja colocado horizontalmente
+    private boolean horizontalCollision(int shipSize, int row, int column) {
+
+        for (int i = column; i < column + shipSize; i++) {
+
+            if (row > 0) {
+                if (this.gameField[row - 1][i] == SHIP) {
+                    return true;
+                }
+            }
+
+            if (this.gameField[row][i] == SHIP) {
+                return true;
+            }
+
+            if (row < ROWS - 1) {
+                if (this.gameField[row + 1][i] == SHIP) {
+                    return true;
+                }
+            }
+
+        }
+
+        if (column > 0) {
+            if (this.gameField[row][column - 1] == SHIP) {
+                return true;
+            }
+        }
+
+        if (column + shipSize < COLUMNS) {
+            if (this.gameField[row][column + shipSize] == SHIP) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    // Testa se existirá colisão caso o navio seja colocado verticalmente
+    private boolean verticalCollision(int shipSize, int row, int column) {
+
+        for (int i = row; i < row + shipSize; i++) {
+
+            if (column > 0) {
+                if (this.gameField[i][column - 1] == SHIP) {
+                    return true;
+                }
+            }
+
+            if (this.gameField[i][column] == SHIP) {
+                return true;
+            }
+
+            if (column < COLUMNS - 1) {
+                if (this.gameField[i][column + 1] == SHIP) {
+                    return true;
+                }
+            }
+        }
+
+        if (row > 0) {
+            if (this.gameField[row - 1][column] == SHIP) {
+                return true;
+            }
+        }
+
+        if (row + shipSize < ROWS) {
+            if (this.gameField[row + shipSize][column] == SHIP) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+
     // Coloca os navios no tabuleiro quando
     // eles são colocados na horizontal
-    public void placeShipHorizontally(int shipSize, int row, int column) {
+    private void placeShipHorizontally(int shipSize, int row, int column) {
 
         for (int i = column; i < column + shipSize; i++) {
             this.gameField[row][i] = SHIP;
@@ -112,7 +194,7 @@ public class Game {
 
     // Coloca os navios no tabuleiro quando
     // eles são colocados da vertical
-    public void placeShipVertically(int shipSize, int row, int column) {
+    private void placeShipVertically(int shipSize, int row, int column) {
         for (int i = row; i < row + shipSize; i++) {
             this.gameField[i][column] = SHIP;
         }
