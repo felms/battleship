@@ -1,4 +1,4 @@
-# Tic-Tac-Toe with AI
+# Battleship
 Praticas do Jetbrains Academy: Projeto Battleship
 
 
