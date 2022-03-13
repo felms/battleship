@@ -4,5 +4,6 @@ public class Main {
         Game game = new Game();
         System.out.println(game.fieldState());
         game.initField();
+        game.shoot();
     }
 }
