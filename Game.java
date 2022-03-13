@@ -18,12 +18,13 @@ public class Game {
     private final String[] firstColumn = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"};
 
     private final char[][] gameField;
+    private final char[][] cloudedField;
 
     public Game() {
 
         scanner = new Scanner(System.in);
 
-        // Inicializa o campo de batalha com
+        // Inicializa os campos de batalha com
         // Fog Of War (o símbolo '~')
         this.gameField = new char[ROWS][COLUMNS];
         for (int i = 0; i < 10; i++) {
@@ -31,6 +32,25 @@ public class Game {
                 this.gameField[i][j] = FOG_OF_WAR;
             }
         }
+
+        this.cloudedField = new char[ROWS][COLUMNS];
+        for (int i = 0; i < 10; i++) {
+            for (int j = 0; j < 10; j++) {
+                this.cloudedField[i][j] = FOG_OF_WAR;
+            }
+        }
+    }
+
+    // Inicializa o campo de batalha posicionando
+    // os navios de acordo com o input do usuário
+    public void initField() {
+
+        System.out.println(fieldState(this.gameField));
+
+        for (Ships ship : Ships.values()) {
+            placeShip(ship);
+        }
+
     }
 
     // Executa os tiros nos navios
@@ -40,7 +60,7 @@ public class Game {
         List<String> columnList = Arrays.asList(firstRow);
 
         System.out.println("\nThe game starts!");
-        System.out.println(fieldState());
+        System.out.println(fieldState(this.cloudedField));
 
         System.out.println("Take a shot!");
         boolean validShot = false;
@@ -61,7 +81,7 @@ public class Game {
             }
         }
 
-        System.out.println(fieldState());
+        System.out.println(fieldState(this.gameField));
 
     }
 
@@ -71,22 +91,18 @@ public class Game {
 
         if (this.gameField[row][column] == SHIP) {
             this.gameField[row][column] = HIT;
+            this.cloudedField[row][column] = HIT;
+            System.out.println("\n" + fieldState(this.cloudedField));
             System.out.println("You hit a ship!");
 
         } else {
             this.gameField[row][column] = MISS;
+            this.cloudedField[row][column] = MISS;
+            System.out.println("\n" + fieldState(this.cloudedField));
             System.out.println("You missed!");
         }
 
-    }
 
-    // Inicializa o campo de batalha posicionando
-    // os navios de acordo com o input do usuário
-    public void initField() {
-
-        for (Ships ship : Ships.values()) {
-            placeShip(ship);
-        }
 
     }
 
@@ -150,7 +166,7 @@ public class Game {
 
         }
 
-        System.out.println(fieldState());
+        System.out.println(fieldState(this.gameField));
 
     }
 
@@ -248,7 +264,7 @@ public class Game {
     }
 
     // Mostra o estado atual do campo de batalha
-    public String fieldState() {
+    public String fieldState(char[][] field) {
         StringBuilder result = new StringBuilder();
 
         for (int i = 0; i <= COLUMNS; i++) {
@@ -259,7 +275,7 @@ public class Game {
         for (int i = 0; i < ROWS; i++ ) {
             result.append(firstColumn[i] + " ");
             for (int j = 0; j < COLUMNS; j++) {
-                result.append(gameField[i][j] + " ");
+                result.append(field[i][j] + " ");
             }
             result.append("\n");
         }
