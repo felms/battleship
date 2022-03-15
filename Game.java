@@ -47,9 +47,20 @@ public class Game {
 
         System.out.println(fieldState(this.gameField));
 
-        for (Ships ship : Ships.values()) {
-            placeShip(ship);
-        }
+        Ship aircraftCarrier = new Ship(5, "Aircraft Carrier");
+        placeShip(aircraftCarrier);
+
+        Ship battleShip = new Ship(4, "Battleship");
+        placeShip(battleShip);
+
+        Ship submarine = new Ship(3, "Submarine");
+        placeShip(submarine);
+
+        Ship cruiser = new Ship(3, "Cruiser");
+        placeShip(cruiser);
+
+        Ship destroyer = new Ship(2, "Destroyer");
+        placeShip(destroyer);
 
     }
 
@@ -108,7 +119,7 @@ public class Game {
 
     // Testa se o navio recebeu o tamanho correto
     // e se o mesmo não foi colocado em um lugar errado no campo de batalha
-    private void placeShip(Ships ship) {
+    private void placeShip(Ship ship) {
 
         List<String> rowList = Arrays.asList(firstColumn);
         List<String> columnList = Arrays.asList(firstRow);
