@@ -17,26 +17,29 @@ public class Game {
     private final String[] firstRow = {" ", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"};
     private final String[] firstColumn = {"A", "B", "C", "D", "E", "F", "G", "H", "I", "J"};
 
-    private final char[][] gameField;
-    private final char[][] cloudedField;
+    private final Node[][] gameField;
+    private final Node[][] cloudedField;
+
+    private int sunkenShips;
 
     public Game() {
 
         scanner = new Scanner(System.in);
+        this.sunkenShips = 0;
 
         // Inicializa os campos de batalha com
         // Fog Of War (o símbolo '~')
-        this.gameField = new char[ROWS][COLUMNS];
+        this.gameField = new Node[ROWS][COLUMNS];
         for (int i = 0; i < 10; i++) {
             for (int j = 0; j < 10; j++) {
-                this.gameField[i][j] = FOG_OF_WAR;
+                this.gameField[i][j] = new Node(null, FOG_OF_WAR);
             }
         }
 
-        this.cloudedField = new char[ROWS][COLUMNS];
+        this.cloudedField = new Node[ROWS][COLUMNS];
         for (int i = 0; i < 10; i++) {
             for (int j = 0; j < 10; j++) {
-                this.cloudedField[i][j] = FOG_OF_WAR;
+                this.cloudedField[i][j] = new Node(null, FOG_OF_WAR);
             }
         }
     }
@@ -64,16 +67,23 @@ public class Game {
 
     }
 
-    // Executa os tiros nos navios
-    public void shoot() {
-
-        List<String> rowList = Arrays.asList(firstColumn);
-        List<String> columnList = Arrays.asList(firstRow);
-
+    public void play() {
         System.out.println("\nThe game starts!");
         System.out.println(fieldState(this.cloudedField));
 
         System.out.println("Take a shot!");
+
+        while(this.sunkenShips < 5) {
+            shoot();
+        }
+    }
+
+    // Executa os tiros nos navios
+    private void shoot() {
+
+        List<String> rowList = Arrays.asList(firstColumn);
+        List<String> columnList = Arrays.asList(firstRow);
+
         boolean validShot = false;
 
         while(!validShot) {
@@ -98,22 +108,39 @@ public class Game {
 
     // Testa se foi um tiro certeiro e coloca
     // 'tiro' no local correto no campo de batalha
+    // além de atualizar a contagaem de tiros recebidos
+    // pelo navio a contagem de navios afundados
     private void placeShot(int row, int column) {
 
-        if (this.gameField[row][column] == SHIP) {
-            this.gameField[row][column] = HIT;
-            this.cloudedField[row][column] = HIT;
+        if (this.gameField[row][column].cell == SHIP) {
+            this.gameField[row][column].cell = HIT;
+            this.gameField[row][column].ship.takeAShot();
+            this.cloudedField[row][column].cell = HIT;
             System.out.println("\n" + fieldState(this.cloudedField));
-            System.out.println("You hit a ship!");
 
+            int hits = this.gameField[row][column].ship.getHits();
+            int cells = this.gameField[row][column].ship.getCells();
+
+            if (hits == cells) {
+
+                this.sunkenShips++;
+                if (this.sunkenShips == 5) {
+                    System.out.println("You sank the last ship. You won. Congratulations!");
+                } else {
+                    System.out.println("You sank a ship! Specify a new target:");
+                }
+            } else {
+                System.out.println("You hit a ship! Try again:");
+            }
+
+        } else if (this.gameField[row][column].cell == HIT) {
+            System.out.println("You hit a ship! Try again:");
         } else {
-            this.gameField[row][column] = MISS;
-            this.cloudedField[row][column] = MISS;
+            this.gameField[row][column].cell = MISS;
+            this.cloudedField[row][column].cell = MISS;
             System.out.println("\n" + fieldState(this.cloudedField));
-            System.out.println("You missed!");
+            System.out.println("You missed! Try again:");
         }
-
-
 
     }
 
@@ -152,7 +179,7 @@ public class Game {
                     System.out.println("\nError! You placed it too close to another one. Try again:");
 
                 } else {
-                    placeShipHorizontally(size, rowList.indexOf(row0) , c - 1);
+                    placeShipHorizontally(ship, rowList.indexOf(row0) , c - 1);
                     shipPlaced = true;
                 }
 
@@ -170,7 +197,7 @@ public class Game {
                     System.out.println("\nError! You placed it too close to another one. Try again:");
 
                 } else {
-                    placeShipVertically(size, r, columnList.indexOf(column0) - 1);
+                    placeShipVertically(ship, r, columnList.indexOf(column0) - 1);
                     shipPlaced = true;
                 }
             }
@@ -187,17 +214,17 @@ public class Game {
         for (int i = column; i < column + shipSize; i++) {
 
             if (row > 0) {
-                if (this.gameField[row - 1][i] == SHIP) {
+                if (this.gameField[row - 1][i].cell == SHIP) {
                     return true;
                 }
             }
 
-            if (this.gameField[row][i] == SHIP) {
+            if (this.gameField[row][i].cell == SHIP) {
                 return true;
             }
 
             if (row < ROWS - 1) {
-                if (this.gameField[row + 1][i] == SHIP) {
+                if (this.gameField[row + 1][i].cell == SHIP) {
                     return true;
                 }
             }
@@ -205,13 +232,13 @@ public class Game {
         }
 
         if (column > 0) {
-            if (this.gameField[row][column - 1] == SHIP) {
+            if (this.gameField[row][column - 1].cell == SHIP) {
                 return true;
             }
         }
 
         if (column + shipSize < COLUMNS) {
-            if (this.gameField[row][column + shipSize] == SHIP) {
+            if (this.gameField[row][column + shipSize].cell == SHIP) {
                 return true;
             }
         }
@@ -225,30 +252,30 @@ public class Game {
         for (int i = row; i < row + shipSize; i++) {
 
             if (column > 0) {
-                if (this.gameField[i][column - 1] == SHIP) {
+                if (this.gameField[i][column - 1].cell == SHIP) {
                     return true;
                 }
             }
 
-            if (this.gameField[i][column] == SHIP) {
+            if (this.gameField[i][column].cell == SHIP) {
                 return true;
             }
 
             if (column < COLUMNS - 1) {
-                if (this.gameField[i][column + 1] == SHIP) {
+                if (this.gameField[i][column + 1].cell == SHIP) {
                     return true;
                 }
             }
         }
 
         if (row > 0) {
-            if (this.gameField[row - 1][column] == SHIP) {
+            if (this.gameField[row - 1][column].cell == SHIP) {
                 return true;
             }
         }
 
         if (row + shipSize < ROWS) {
-            if (this.gameField[row + shipSize][column] == SHIP) {
+            if (this.gameField[row + shipSize][column].cell == SHIP) {
                 return true;
             }
         }
@@ -259,23 +286,25 @@ public class Game {
 
     // Coloca os navios no tabuleiro quando
     // eles são colocados na horizontal
-    private void placeShipHorizontally(int shipSize, int row, int column) {
+    private void placeShipHorizontally(Ship ship, int row, int column) {
 
-        for (int i = column; i < column + shipSize; i++) {
-            this.gameField[row][i] = SHIP;
+        for (int i = column; i < column + ship.getCells(); i++) {
+            this.gameField[row][i].cell = SHIP;
+            this.gameField[row][i].ship = ship;
         }
     }
 
     // Coloca os navios no tabuleiro quando
     // eles são colocados da vertical
-    private void placeShipVertically(int shipSize, int row, int column) {
-        for (int i = row; i < row + shipSize; i++) {
-            this.gameField[i][column] = SHIP;
+    private void placeShipVertically(Ship ship, int row, int column) {
+        for (int i = row; i < row + ship.getCells(); i++) {
+            this.gameField[i][column].cell = SHIP;
+            this.gameField[i][column].ship = ship;
         }
     }
 
     // Mostra o estado atual do campo de batalha
-    public String fieldState(char[][] field) {
+    private String fieldState(Node[][] field) {
         StringBuilder result = new StringBuilder();
 
         for (int i = 0; i <= COLUMNS; i++) {
@@ -286,12 +315,27 @@ public class Game {
         for (int i = 0; i < ROWS; i++ ) {
             result.append(firstColumn[i] + " ");
             for (int j = 0; j < COLUMNS; j++) {
-                result.append(field[i][j] + " ");
+                result.append(field[i][j].cell + " ");
             }
             result.append("\n");
         }
 
         return result.toString();
+    }
+
+    // Precisei criar essa classe para armazenar a referência de um
+    // navio e o valor do campo.
+    // Não gostei. Ficou com muita cara de gambiarra mas é o que
+    // temos pra hj.
+    private class Node {
+
+        Ship ship;
+        char cell;
+
+        Node(Ship ship, char cell) {
+            this.ship = ship;
+            this.cell = cell;
+        }
     }
 
 }

@@ -23,4 +23,7 @@ public class Ship {
         return this.hits;
     }
 
+    public void takeAShot(){
+        this.hits++;
+    }
 }
