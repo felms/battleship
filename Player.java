@@ -2,7 +2,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Scanner;
 
-public class Game {
+public class Player {
 
     private final Scanner scanner;
 
@@ -22,10 +22,13 @@ public class Game {
 
     private int sunkenShips;
 
-    public Game() {
+    private final String name;
+
+    public Player(String name) {
 
         scanner = new Scanner(System.in);
         this.sunkenShips = 0;
+        this.name = name;
 
         // Inicializa os campos de batalha com
         // Fog Of War (o símbolo '~')
@@ -67,19 +70,16 @@ public class Game {
 
     }
 
-    public void play() {
-        System.out.println("\nThe game starts!");
-        System.out.println(fieldState(this.cloudedField));
+    public String getGameFieldState() {
+        return this.fieldState(this.gameField);
+    }
 
-        System.out.println("Take a shot!");
-
-        while(this.sunkenShips < 5) {
-            shoot();
-        }
+    public String getCloudedFieldState() {
+        return this.fieldState(this.cloudedField);
     }
 
     // Executa os tiros nos navios
-    private void shoot() {
+    public void shoot() {
 
         List<String> rowList = Arrays.asList(firstColumn);
         List<String> columnList = Arrays.asList(firstRow);
@@ -106,6 +106,12 @@ public class Game {
 
     }
 
+    // Testa se esse jogador perdeu o jogo
+    // (teve todos os navios afundados)
+    public boolean lostTheGame() {
+        return this.sunkenShips == 5;
+    }
+
     // Testa se foi um tiro certeiro e coloca
     // 'tiro' no local correto no campo de batalha
     // além de atualizar a contagaem de tiros recebidos
@@ -116,7 +122,6 @@ public class Game {
             this.gameField[row][column].cell = HIT;
             this.gameField[row][column].ship.takeAShot();
             this.cloudedField[row][column].cell = HIT;
-            System.out.println("\n" + fieldState(this.cloudedField));
 
             int hits = this.gameField[row][column].ship.getHits();
             int cells = this.gameField[row][column].ship.getCells();
@@ -130,16 +135,15 @@ public class Game {
                     System.out.println("You sank a ship! Specify a new target:");
                 }
             } else {
-                System.out.println("You hit a ship! Try again:");
+                System.out.println("You hit a ship!");
             }
 
         } else if (this.gameField[row][column].cell == HIT) {
-            System.out.println("You hit a ship! Try again:");
+            System.out.println("You hit a ship!");
         } else {
             this.gameField[row][column].cell = MISS;
             this.cloudedField[row][column].cell = MISS;
-            System.out.println("\n" + fieldState(this.cloudedField));
-            System.out.println("You missed! Try again:");
+            System.out.println("You missed!");
         }
 
     }
@@ -191,7 +195,7 @@ public class Game {
                 int r = Math.min(r0, r1);
 
                 if (size != ship.getCells()) {
-                    System.out.printf("\nError! Wrong length of the %s! Try again:", ship.getName());
+                    System.out.println("\nError! Wrong length of the " + ship.getName() + "! Try again:");
 
                 } else if (verticalCollision(size, r, columnList.indexOf(column0) - 1)) {
                     System.out.println("\nError! You placed it too close to another one. Try again:");
@@ -204,7 +208,7 @@ public class Game {
 
         }
 
-        System.out.println(fieldState(this.gameField));
+        System.out.println("\n" + fieldState(this.gameField));
 
     }
 
@@ -321,6 +325,10 @@ public class Game {
         }
 
         return result.toString();
+    }
+
+    public String getName() {
+        return name;
     }
 
     // Precisei criar essa classe para armazenar a referência de um
